@@ -1,13 +1,20 @@
 {
     "name": "directus-extension-meilisearch",
-    "description": "Please enter a description for your extension",
+    "description": "A Directus extension to integrate Meilisearch, enabling fast and flexible full-text search capabilities within Directus collections.",
     "icon": "extension",
     "version": "1.0.0",
     "keywords": [
         "directus",
         "directus-extension",
-        "directus-extension-hook"
+        "directus-extension-hook",
+        "meilisearch",
+        "full-text search",
+        "search",
+        "fast",
+        "integration"
     ],
+    "author": "Arif Iskandar",
+    "license": "MIT",
     "type": "module",
     "files": [
         "dist"
