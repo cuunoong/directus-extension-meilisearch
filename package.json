@@ -2,7 +2,7 @@
     "name": "directus-extension-meilisearch",
     "description": "A Directus extension to integrate Meilisearch, enabling fast and flexible full-text search capabilities within Directus collections.",
     "icon": "extension",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "keywords": [
         "directus",
         "directus-extension",
