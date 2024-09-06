@@ -2,6 +2,7 @@ import { flatten } from "flat";
 import { stripHtml } from "string-strip-html";
 import { TaskStatus } from "meilisearch";
 import { MeilisearchTaskResult } from "./models";
+import sleep from "sleep";
 
 const flattenAndStripHtml = (object) => {
     // Flatten the object, so we can easily iterate the properties.
@@ -44,14 +45,6 @@ const flattenAndStripHtml = (object) => {
     return flattenedObject;
 };
 
-const sleep = async (milliseconds) => {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-        currentDate = Date.now();
-    } while (currentDate - date < milliseconds);
-};
-
 const waitForMeilisearchTask = async (client, task) => {
     let counter = 0;
     let taskStatus = TaskStatus.TASK_ENQUEUED;
@@ -71,7 +64,7 @@ const waitForMeilisearchTask = async (client, task) => {
         if (counter === 5) break;
 
         // Wait 5 seconds before trying again.
-        await sleep(5000);
+        sleep.sleep(5);
 
         counter++;
     }
