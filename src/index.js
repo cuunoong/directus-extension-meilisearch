@@ -106,6 +106,7 @@ export default defineHook(
                                     const entities =
                                         await itemsService.readByQuery({
                                             fields: configuration.Fields,
+                                            filter: configuration.Filter,
                                             limit: pageSize,
                                             offset: offset,
                                         });
