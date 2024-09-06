@@ -2,7 +2,7 @@ import { flatten } from "flat";
 import { stripHtml } from "string-strip-html";
 import { TaskStatus } from "meilisearch";
 import { MeilisearchTaskResult } from "./models";
-import sleep from "sleep";
+import sleep from "sleep-promise";
 
 const flattenAndStripHtml = (object) => {
     // Flatten the object, so we can easily iterate the properties.
@@ -64,7 +64,7 @@ const waitForMeilisearchTask = async (client, task) => {
         if (counter === 5) break;
 
         // Wait 5 seconds before trying again.
-        sleep.sleep(5);
+        await sleep(5000);
 
         counter++;
     }

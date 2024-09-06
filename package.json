@@ -31,12 +31,11 @@
         "link": "directus-extension link"
     },
     "devDependencies": {
-        "@directus/extensions-sdk": "12.0.2",
-        "@types/sleep": "^0.0.12"
+        "@directus/extensions-sdk": "12.0.2"
     },
     "dependencies": {
         "meilisearch": "^0.42.0",
-        "sleep": "^6.3.0",
+        "sleep-promise": "^9.1.0",
         "string-strip-html": "^13.4.8"
     }
 }
