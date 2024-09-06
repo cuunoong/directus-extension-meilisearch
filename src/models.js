@@ -1,18 +1,18 @@
 class CollectionConfiguration {
     constructor(collection, filter, fields) {
-        this.Collection = collection;
-        this.Filter = filter;
-        this.Fields = fields;
+        this.collection = collection;
+        this.filter = filter;
+        this.fields = fields;
     }
 }
 
 export class MeilisearchSettings {
     constructor(data) {
-        this.Host = data.host;
-        this.Key = data.api_key;
+        this.host = data.host;
+        this.apiKey = data.api_key;
 
         const configurationData = data.collections_configuration;
-        this.CollectionsConfiguration = configurationData.map(
+        this.collectionsConfiguration = configurationData.map(
             (config) =>
                 new CollectionConfiguration(
                     config.collection,
@@ -25,7 +25,7 @@ export class MeilisearchSettings {
 
 export class MeilisearchTaskResult {
     constructor(success, message) {
-        this.Success = success;
-        this.Message = message;
+        this.success = success;
+        this.message = message;
     }
 }

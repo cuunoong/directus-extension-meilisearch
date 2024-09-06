@@ -1,6 +1,6 @@
 import { flatten } from "flat";
 import { stripHtml } from "string-strip-html";
-import { EnqueuedTask, Meilisearch, TaskStatus } from "meilisearch";
+import { TaskStatus } from "meilisearch";
 import { MeilisearchTaskResult } from "./models";
 
 const flattenAndStripHtml = (object) => {
@@ -44,13 +44,13 @@ const flattenAndStripHtml = (object) => {
     return flattenedObject;
 };
 
-const sleep = (ms) => {
+const sleep = async (ms) => {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
 };
 
-const waitForMeilisearchTask = (client, task) => {
+const waitForMeilisearchTask = async (client, task) => {
     return (
         new Promise() <
         MeilisearchTaskResult >
