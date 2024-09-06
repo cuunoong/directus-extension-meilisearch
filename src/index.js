@@ -94,6 +94,8 @@ export default defineHook(
                                 }
                                 if (index == null) return;
 
+                                await index.deleteAllDocuments();
+
                                 // Create items service.
                                 const itemsService = new ItemsService(
                                     configuration.Collection,
