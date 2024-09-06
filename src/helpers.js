@@ -64,7 +64,7 @@ const waitForMeilisearchTask = async (client, task) => {
         if (counter === 5) break;
 
         // Wait 5 seconds before trying again.
-        await sleep(5000);
+        await sleep(500);
 
         counter++;
     }
