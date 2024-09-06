@@ -79,7 +79,10 @@ export default defineHook(
                                 );
                             } catch (error) {
                                 const task = await client.createIndex(
-                                    configuration.collection
+                                    configuration.collection,
+                                    {
+                                        primaryKey: "id",
+                                    }
                                 );
                                 const taskResult = await waitForMeilisearchTask(
                                     client,
