@@ -15,113 +15,131 @@ export default defineHook(
                 .command("meilisearch:reindex")
                 .description("Reindex collections into Meilisearch.")
                 .action(async () => {
-                    const schema = await getSchema();
-                    const collectionService = new CollectionsService({
-                        schema,
-                    });
-                    const collections = await collectionService.readByQuery();
-
-                    // Check if Meilisearch settings table exists
-                    if (
-                        collections.find(
-                            (collection) => collection.collection === TABLE_NAME
-                        ) === undefined
-                    ) {
+                    try {
                         logger.info(
-                            "Unable to reindex collections. You must first set up the extension."
+                            `Start Reindex collections into Meilisearch.`
                         );
-                        return;
-                    }
 
-                    // Get Meilisearch settings
-                    const settingsService = new ItemsService(
-                        "meilisearch_settings",
-                        {
+                        const schema = await getSchema();
+                        const collectionService = new CollectionsService({
                             schema,
+                        });
+                        const collections =
+                            await collectionService.readByQuery();
+
+                        // Check if Meilisearch settings table exists
+                        if (
+                            collections.find(
+                                (collection) =>
+                                    collection.collection === TABLE_NAME
+                            ) === undefined
+                        ) {
+                            logger.info(
+                                "Unable to reindex collections. You must first set up the extension."
+                            );
+                            return;
                         }
-                    );
-                    const entity = await settingsService.readOne("1");
-                    const meilisearchSettings = new MeilisearchSettings(entity);
 
-                    // Exit if the integration hasn't been properly configured
-                    if (
-                        !meilisearchSettings.Host ||
-                        !meilisearchSettings.Key ||
-                        !meilisearchSettings.CollectionsConfiguration.length
-                    )
-                        return;
-
-                    // Create Meilisearch client
-                    const client = new MeiliSearch({
-                        host: meilisearchSettings.host,
-                        apiKey: meilisearchSettings.key,
-                    });
-
-                    for (const configuration of meilisearchSettings.collectionsConfiguration) {
-                        logger.info(
-                            `Updating index for collection ${configuration.collection}`
-                        );
-
-                        let index = null;
-                        try {
-                            index = await client.getIndex(
-                                configuration.collection
-                            );
-                        } catch (error) {
-                            const task = await client.createIndex(
-                                configuration.collection
-                            );
-                            const taskResult = await waitForMeilisearchTask(
-                                client,
-                                task
-                            );
-                            if (!taskResult.Success) {
-                                logger.warn(
-                                    `Unable to create index for collection ${configuration.collection}`
-                                );
-                                logger.warn(taskResult.Message);
-                            } else {
-                                index = await client.getIndex(
-                                    configuration.collection
-                                );
-                            }
-                        }
-                        if (!index) return;
-
-                        await index.deleteAllDocuments();
-
-                        // Create items service for fetching entities
-                        const itemsService = new ItemsService(
-                            configuration.collection,
+                        // Get Meilisearch settings
+                        const settingsService = new ItemsService(
+                            "meilisearch_settings",
                             {
                                 schema,
                             }
                         );
 
-                        const pageSize = 100;
-                        for (let offset = 0; ; offset += pageSize) {
-                            const entities = await itemsService.readByQuery({
-                                fields: configuration.fields,
-                                filter: configuration.filter,
-                                limit: pageSize,
-                                offset,
-                            });
+                        const entity = await settingsService.readOne("1");
+                        const meilisearchSettings = new MeilisearchSettings(
+                            entity
+                        );
 
-                            if (!entities || !entities.length) break;
+                        // Exit if the integration hasn't been properly configured
+                        if (
+                            !meilisearchSettings.host ||
+                            !meilisearchSettings.apiKey ||
+                            !meilisearchSettings.collectionsConfiguration.length
+                        )
+                            return;
 
-                            const flattenedEntities = entities.map((entity) =>
-                                flattenAndStripHtml(entity)
-                            );
+                        // Create Meilisearch client
+                        const client = new MeiliSearch({
+                            host: meilisearchSettings.host,
+                            apiKey: meilisearchSettings.apiKey,
+                        });
 
-                            await index.updateDocuments(flattenedEntities);
-
+                        for (const configuration of meilisearchSettings.collectionsConfiguration) {
                             logger.info(
-                                `Updated ${flattenedEntities.length} entities in Meilisearch index ${configuration.collection}.`
+                                `Updating index for collection ${configuration.collection}`
                             );
-                        }
-                    }
 
-                    logger.info("Finished reindexing.");
+                            let index = null;
+                            try {
+                                index = await client.getIndex(
+                                    configuration.collection
+                                );
+                            } catch (error) {
+                                const task = await client.createIndex(
+                                    configuration.collection
+                                );
+                                const taskResult = await waitForMeilisearchTask(
+                                    client,
+                                    task
+                                );
+                                if (!taskResult.success) {
+                                    logger.warn(
+                                        `Unable to create index for collection ${configuration.collection}`
+                                    );
+                                    logger.warn(taskResult.message);
+                                } else {
+                                    index = await client.getIndex(
+                                        configuration.collection
+                                    );
+                                }
+                            }
+
+                            if (!index) return;
+
+                            await index.deleteAllDocuments();
+
+                            // Create items service for fetching entities
+                            const itemsService = new ItemsService(
+                                configuration.collection,
+                                {
+                                    schema,
+                                }
+                            );
+
+                            let pageSize = 100;
+                            for (let offset = 0; ; offset += pageSize) {
+                                const entities = await itemsService.readByQuery(
+                                    {
+                                        fields: configuration.fields,
+                                        filter: configuration.filter,
+                                        limit: pageSize,
+                                        offset,
+                                    }
+                                );
+
+                                if (!entities || !entities.length) break;
+
+                                const flattenedEntities = entities.map(
+                                    (entity) => flattenAndStripHtml(entity)
+                                );
+
+                                await index.updateDocuments(flattenedEntities, {
+                                    primaryKey: "id",
+                                });
+
+                                logger.info(
+                                    `Updated ${flattenedEntities.length} entities in Meilisearch index ${configuration.collection}.`
+                                );
+                            }
+                        }
+
+                        logger.info("Finished reindexing.");
+                    } catch (error) {
+                        logger.error(error);
+                    }
                 });
         });
 
@@ -158,21 +176,21 @@ export default defineHook(
 
             // Exit if integration hasn't been set up
             if (
-                !meilisearchSettings.Host ||
-                !meilisearchSettings.Key ||
-                !meilisearchSettings.CollectionsConfiguration.length
+                !meilisearchSettings.host ||
+                !meilisearchSettings.apiKey ||
+                !meilisearchSettings.collectionsConfiguration.length
             )
                 return;
 
             logger.info("Meilisearch integration is OK.");
 
             const client = new MeiliSearch({
-                host: meilisearchSettings.Host,
-                apiKey: meilisearchSettings.Key,
+                host: meilisearchSettings.host,
+                apiKey: meilisearchSettings.apiKey,
             });
 
             // Set up hooks for create, update, and delete actions
-            for (const configuration of meilisearchSettings.CollectionsConfiguration) {
+            for (const configuration of meilisearchSettings.collectionsConfiguration) {
                 action(
                     `${configuration.collection}.items.create`,
                     async (meta, context) => {

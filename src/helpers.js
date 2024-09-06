@@ -44,49 +44,44 @@ const flattenAndStripHtml = (object) => {
     return flattenedObject;
 };
 
-const sleep = async (ms) => {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
+const sleep = async (milliseconds) => {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+        currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
 };
 
 const waitForMeilisearchTask = async (client, task) => {
-    return (
-        new Promise() <
-        MeilisearchTaskResult >
-        (async (resolve) => {
-            let counter = 0;
-            let taskStatus = TaskStatus.TASK_ENQUEUED;
-            let taskError = "";
+    let counter = 0;
+    let taskStatus = TaskStatus.TASK_ENQUEUED;
 
-            while (
-                taskStatus !== TaskStatus.TASK_SUCCEEDED &&
-                taskStatus !== TaskStatus.TASK_FAILED &&
-                taskStatus !== TaskStatus.TASK_CANCELED
-            ) {
-                // Get latest status of task.
-                const taskInfo = await client.getTask(task.taskUid);
-                taskStatus = taskInfo.status;
-                if (taskStatus === TaskStatus.TASK_FAILED)
-                    taskError = `${taskInfo.error?.code}: ${taskInfo.error?.message}`;
+    while (
+        taskStatus !== TaskStatus.TASK_SUCCEEDED &&
+        taskStatus !== TaskStatus.TASK_FAILED &&
+        taskStatus !== TaskStatus.TASK_CANCELED
+    ) {
+        // Get latest status of task.
+        const taskInfo = await client.getTask(task.taskUid);
+        taskStatus = taskInfo.status;
+        if (taskStatus === TaskStatus.TASK_FAILED)
+            taskError = `${taskInfo.error?.code}: ${taskInfo.error?.message}`;
 
-                // When we've tried 5 times, exit.
-                if (counter === 5) break;
+        // When we've tried 5 times, exit.
+        if (counter === 5) break;
 
-                // Wait 5 seconds before trying again.
-                await sleep(5000);
+        // Wait 5 seconds before trying again.
+        await sleep(5000);
 
-                counter++;
-            }
+        counter++;
+    }
 
-            // When the delete operation failed, send admin a notification.
-            if (taskStatus === TaskStatus.TASK_FAILED) {
-                resolve(new MeilisearchTaskResult(false, taskStatus));
-            }
+    // When the delete operation failed, send admin a notification.
+    if (taskStatus === TaskStatus.TASK_FAILED) {
+        return new MeilisearchTaskResult(false, taskStatus);
+    }
 
-            resolve(new MeilisearchTaskResult(true, ""));
-        })
-    );
+    return new MeilisearchTaskResult(true, "");
 };
 
 export { flattenAndStripHtml, sleep, waitForMeilisearchTask };
