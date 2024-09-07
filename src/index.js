@@ -81,7 +81,7 @@ export default defineHook(
                                 const task = await client.createIndex(
                                     configuration.collection,
                                     {
-                                        primaryKey: "id",
+                                        primaryKey: configuration.key,
                                     }
                                 );
                                 const taskResult = await waitForMeilisearchTask(
@@ -101,6 +101,12 @@ export default defineHook(
                             }
 
                             if (!index) return;
+
+                            if (configuration.filterable)
+                                await index.updateSettings({
+                                    filterableAttributes:
+                                        configuration.filterable,
+                                });
 
                             await index.deleteAllDocuments();
 
