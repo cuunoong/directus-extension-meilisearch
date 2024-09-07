@@ -1,10 +1,11 @@
 class CollectionConfiguration {
-    constructor(key, collection, filter, fields, filterable) {
+    constructor(key, collection, filter, fields, filterable, sortable) {
         this.key = key;
         this.collection = collection;
         this.filter = filter;
         this.fields = fields;
         this.filterable = filterable;
+        this.sortable = sortable;
     }
 }
 
@@ -21,7 +22,8 @@ export class MeilisearchSettings {
                     config.collection,
                     config.filter,
                     config.fields,
-                    config.filterable
+                    config.filterable,
+                    config.sortable
                 )
         );
     }

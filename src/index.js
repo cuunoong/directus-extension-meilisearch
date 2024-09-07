@@ -102,11 +102,10 @@ export default defineHook(
 
                             if (!index) return;
 
-                            if (configuration.filterable)
-                                await index.updateSettings({
-                                    filterableAttributes:
-                                        configuration.filterable,
-                                });
+                            await index.updateSettings({
+                                filterableAttributes: configuration.filterable,
+                                sortableAttributes: configuration.sortable,
+                            });
 
                             await index.deleteAllDocuments();
 
